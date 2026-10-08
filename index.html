@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guest@Engineer-OS</title>
+    <style>
+        /* Desain Terminal Retro */
+        body {
+            background-color: #0a0a0a;
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            
+            /* Efek Scanline TV Tabung (CRT) */
+            background-image: 
+                linear-gradient(rgba(0, 255, 0, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 0, 0.05) 1px, transparent 1px);
+            background-size: 2px 2px;
+        }
+
+        #terminal-container {
+            max-width: 100%;
+            text-shadow: 0 0 5px rgba(0, 255, 0, 0.7);
+        }
+
+        .output-line {
+            margin-bottom: 8px;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .prompt {
+            color: #00ff00;
+            margin-right: 8px;
+            font-weight: bold;
+        }
+
+        #command-input {
+            background: transparent;
+            border: none;
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
+            width: 100%;
+            outline: none;
+            text-shadow: 0 0 5px rgba(0, 255, 0, 0.7);
+        }
+
+        /* Warna Khusus untuk teks tertentu */
+        .color-accent { color: #ffffff; text-shadow: 0 0 5px #ffffff; }
+        .color-error { color: #ff3333; text-shadow: 0 0 5px #ff3333; }
+        .color-system { color: #aaaaaa; }
+
+        /* Mencegah scrollbar default yang jelek */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #00ff00; }
+    </style>
+</head>
+<body>
+
+    <div id="terminal-container">
+        <div id="output"></div>
+        <div class="input-container">
+            <span class="prompt">visitor@portfolio:~$</span>
+            <input type="text" id="command-input" autocomplete="off" autofocus>
+        </div>
+    </div>
+
+    <script>
+        const outputDiv = document.getElementById('output');
+        const inputField = document.getElementById('command-input');
+
+        // Struktur Data Portfolio Anda (Silakan Edit Bagian Ini)
+        const portfolioData = {
+            "about": "Halo! Saya adalah Software Engineer yang berfokus pada Backend & Microservices.\nSaya suka membangun sistem yang scalable dan menyelesaikan masalah kompleks.",
+            "skills": "- Bahasa: Go, Python, JavaScript\n- Database: PostgreSQL, Redis, MongoDB\n- Infrastruktur: Docker, Kubernetes, Linux, AWS\n- Arsitektur: Microservices, RESTful API, gRPC",
+            "projects": "1. [Sistem GPS Tracking] - Backend realtime menggunakan Go & WebSockets.\n2. [Data Pipeline] - Ekstraksi dan transformasi data jutaan baris per hari.\n3. [E-Commerce API] - Microservices berbasis event-driven architecture.",
+            "contact": "Email   : engineer@contoh.com\nLinkedIn: linkedin.com/in/contoh\nGitHub  : github.com/contoh"
+        };
+
+        const bootSequence = [
+            "Memulai Engineer-OS v1.0.0...",
+            "Memeriksa memori utama... OK",
+            "Memuat modul microservices... OK",
+            "Menghubungkan ke database PostgreSQL... Terhubung",
+            "Sistem siap.",
+            " ",
+            "Ketik <span class='color-accent'>'/help'</span> untuk melihat daftar perintah yang tersedia."
+        ];
+
+        // Fungsi untuk mencetak teks ke layar
+        function printLine(text, isHTML = false) {
+            const line = document.createElement('div');
+            line.className = 'output-line';
+            if (isHTML) {
+                line.innerHTML = text;
+            } else {
+                line.textContent = text;
+            }
+            outputDiv.appendChild(line);
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+
+        // Efek booting sistem saat pertama kali dibuka
+        let bootIndex = 0;
+        function runBootSequence() {
+            if (bootIndex < bootSequence.length) {
+                printLine(bootSequence[bootIndex], true);
+                bootIndex++;
+                setTimeout(runBootSequence, 300); // Jeda 300ms per baris
+            } else {
+                inputField.disabled = false;
+                inputField.focus();
+            }
+        }
+
+        // Matikan input saat booting
+        inputField.disabled = true;
+        setTimeout(runBootSequence, 500);
+
+        // Menangani input dari user
+        inputField.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const command = this.value.trim().toLowerCase();
+                
+                // Cetak perintah yang diketik user
+                printLine(`<span class="prompt">visitor@portfolio:~$</span> ${this.value}`, true);
+                
+                if (command === '') {
+                    // Kosong
+                } else if (command === '/help') {
+                    printLine("Perintah yang tersedia:", false);
+                    printLine("  <span class='color-accent'>about</span>    - Tentang saya", true);
+                    printLine("  <span class='color-accent'>skills</span>   - Keahlian teknis", true);
+                    printLine("  <span class='color-accent'>projects</span> - Daftar proyek", true);
+                    printLine("  <span class='color-accent'>contact</span>  - Informasi kontak", true);
+                    printLine("  <span class='color-accent'>clear</span>    - Membersihkan layar", true);
+                } else if (portfolioData[command]) {
+                    // Jika perintah ada di data portfolio
+                    const lines = portfolioData[command].split('\n');
+                    lines.forEach(line => printLine(line, false));
+                } else if (command === 'clear') {
+                    outputDiv.innerHTML = '';
+                } else {
+                    printLine(`<span class="color-error">Perintah tidak ditemukan: ${command}. Ketik 'help' untuk daftar perintah.</span>`, true);
+                }
+
+                // Kosongkan input
+                this.value = '';
+                window.scrollTo(0, document.body.scrollHeight);
+            }
+        });
+
+        // Pastikan input selalu fokus jika user mengklik area mana saja di terminal
+        document.body.addEventListener('click', () => {
+            inputField.focus();
+        });
+    </script>
+</body>
+</html>
